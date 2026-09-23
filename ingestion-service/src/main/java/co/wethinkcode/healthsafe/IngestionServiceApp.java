@@ -1,16 +1,27 @@
 package co.wethinkcode.healthsafe;
 
 import io.javalin.Javalin;
+import java.util.List;
 
 public class IngestionServiceApp {
 
-    public static void main(String[] args) {
-        Javalin app = Javalin.create().start(7030);
-
-        app.get("/health", ctx -> ctx.result("OK"));
+    public static void main(String[] args) throws Exception{
 
         // TODO: read and clean src/main/resources/wards-outdated.csv (wards, wings, specialist departments data —
         // trim whitespace, fix casing, normalize dates/booleans) and expose the
         // cleaned records here for the other services to consume.
+
+
+        CsvReader reader = new CsvReader();
+        WardParser parser = new WardParser();
+
+        List<String> rows = reader.readLines("wards-outdated.csv");
+        List<Ward> wards = parser.parseWards(rows);
+
+        Javalin app = Javalin.create().start(7030);
+
+        app.get("/health", ctx -> ctx.result("OK")); // endpoint.
+        app.get("/wards", ctx -> ctx.json(wards));
+
     }
 }

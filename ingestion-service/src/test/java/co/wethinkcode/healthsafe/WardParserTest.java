@@ -1,7 +1,7 @@
 package co.wethinkcode.healthsafe;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
+import java.util.List;
 
 class WardParserTest{
     @Test
@@ -199,4 +199,129 @@ class WardParserTest{
         assertEquals(null, ward.getNotes());
     }
 
+    @Test
+    void shouldParseValidWardRow()
+    {
+        WardParser parser = new WardParser();
+
+        Ward ward = parser.parseWard("W-01, East Wing ,Cardiology,3");
+
+        assertEquals("W-01", ward.getWardId());
+        assertEquals("East Wing", ward.getWing());
+        assertEquals("Cardiology", ward.getDepartment());
+        assertEquals(3, ward.getBedsAvailable());
+    }
+
+    @Test
+    void shouldParseAndCleanMessyWardRow()
+    {
+        WardParser parser = new WardParser();
+
+        Ward ward = parser.parseWard("w-02,West Wing,paediatrics,N/A");
+
+        assertEquals("W-02", ward.getWardId());
+        assertEquals("West Wing", ward.getWing());
+        assertEquals("Paediatrics", ward.getDepartment());
+        assertEquals(null, ward.getBedsAvailable());
+    }
+
+    @Test
+    void shouldHandleInvalidBedsWithoutCrashing()
+    {
+        WardParser parser = new WardParser();
+
+        Ward ward = parser.parseWard("W-04,North Wing,Oncology,-1");
+
+        assertEquals("W-04", ward.getWardId());
+        assertEquals("Oncology", ward.getDepartment());
+        assertEquals(null, ward.getBedsAvailable());
+    }
+
+    @Test
+    void shouldHandleNonNumericBedsWithoutCrashing()
+    {
+        WardParser parser = new WardParser();
+
+        Ward ward = parser.parseWard("w-05,east wing,PAEDIATRICS,five");
+
+        assertEquals("W-05", ward.getWardId());
+        assertEquals("East Wing", ward.getWing());
+        assertEquals("Paediatrics", ward.getDepartment());
+        assertEquals(null, ward.getBedsAvailable());
+    }
+
+    @Test
+    void shouldParseMultipleWardRows()
+    {
+        WardParser parser = new WardParser();
+
+        List<Ward> wards = parser.parseWards(List.of(
+                "ward_id, Wing ,department,beds_available",
+                "W-01, East Wing ,Cardiology,3",
+                "w-02,West Wing,paediatrics,N/A",
+                "W-03 ,east wing,Cardiology,0"
+        ));
+
+        assertEquals(3, wards.size());
+
+        assertEquals("W-01", wards.get(0).getWardId());
+        assertEquals("W-02", wards.get(1).getWardId());
+        assertEquals("W-03", wards.get(2).getWardId());
+    }
+
+    @Test
+    void shouldSkipCsvHeader()
+    {
+        WardParser parser = new WardParser();
+
+        List<Ward> wards = parser.parseWards(List.of(
+                "ward_id, Wing ,department,beds_available",
+                "W-01, East Wing ,Cardiology,3"
+        ));
+
+        assertEquals(1, wards.size());
+        assertEquals("W-01", wards.get(0).getWardId());
+    }
+
+    @Test
+    void shouldHandleDuplicateWardIds()
+    {
+        WardParser parser = new WardParser();
+
+        List<Ward> wards = parser.parseWards(List.of(
+                "W-05,East Wing,Paediatrics,5",
+                "w-05,east wing,PAEDIATRICS,five"
+        ));
+
+        assertEquals(1, wards.size());
+        assertEquals("W-05", wards.get(0).getWardId());
+        assertEquals(5, wards.get(0).getBedsAvailable());
+    }
+
+    @Test
+    void shouldSkipMalformedRowsWithoutCrashing()
+    {
+        WardParser parser = new WardParser();
+
+        List<Ward> wards = parser.parseWards(List.of(
+                "ward_id, Wing ,department,beds_available",
+                "W-01,East Wing,Cardiology,3",
+                "this row is malformed"
+        ));
+
+        assertEquals(1, wards.size());
+        assertEquals("W-01", wards.get(0).getWardId());
+    }
+
+    @Test
+    void shouldParseActualCsvFile() throws Exception
+    {
+        CsvReader reader = new CsvReader();
+        WardParser parser = new WardParser();
+
+        List<String> rows = reader.readLines("wards-outdated.csv");
+        List<Ward> wards = parser.parseWards(rows);
+
+        assertEquals(17, wards.size());
+    }
 }
