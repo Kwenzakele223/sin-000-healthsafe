@@ -110,9 +110,75 @@ class WardParserTest{
         assertEquals(null, result);
     }
 
+    @Test
+    void shouldConvertDashToNull()
+    {
+        WardParser parser = new WardParser();
+
+        String result = parser.normalizeMissingValue("-");
+
+        assertEquals(null, result);
+    }
+
+    @Test
+    void shouldConvertNaNToNull()
+    {
+        WardParser parser = new WardParser();
+
+        String result = parser.normalizeMissingValue("NaN");
+
+        assertEquals(null, result);
+    }
+
+    @Test
+    void shouldParseValidBedsAvailable()
+    {
+        WardParser parser = new WardParser();
+
+        int result = parser.normalizeBedsAvailable("5");
+
+        assertEquals(5, result);
+    }
+
+    @Test
+    void shouldConvertNegativeBedsToNull()
+    {
+        WardParser parser = new WardParser();
+
+        Integer result = parser.normalizeBedsAvailable("-1");
+
+        assertEquals(null, result);
+    }
 
 
+    @Test
+    void shouldConvertNonNumericBedsToNull()
+    {
+        WardParser parser = new WardParser();
 
+        Integer result = parser.normalizeBedsAvailable("five");
 
+        assertEquals(null, result);
+    }
+
+    @Test
+    void shouldConvertFullToNull()
+    {
+        WardParser parser = new WardParser();
+
+        Integer result = parser.normalizeBedsAvailable("full");
+
+        assertEquals(null, result);
+    }
+
+    @Test
+    void shouldConvertUnrealisticBedsToNull()
+    {
+        WardParser parser = new WardParser();
+
+        Integer result = parser.normalizeBedsAvailable("2023");
+
+        assertEquals(null, result);
+    }
 
 }

@@ -28,9 +28,29 @@ class WardParser{
     public String normalizeMissingValue(String value)
     {
        String upper = value.toUpperCase();
-        if(upper.equals("N/A") || upper.equals("TBD") || upper.equals("UNKNOWN") || upper.trim().equals(""))
+        if(upper.equals("N/A") || upper.equals("TBD") || upper.equals("UNKNOWN") || upper.trim().equals("") || upper.equals("-") || upper.equals("NAN"))
         {return null;}
 
         return value;
+    }
+
+
+    public Integer normalizeBedsAvailable(String beds)
+    {
+
+        try
+        {
+            int number = Integer.parseInt(beds);
+            if(number < 0 || number > 100)
+            {
+                return null;
+            }
+
+            return number;
+        }
+        catch(NumberFormatException e)
+        {
+            return null;
+        }
     }
 }
