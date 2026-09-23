@@ -324,4 +324,17 @@ class WardParserTest{
 
         assertEquals(17, wards.size());
     }
+
+
+    @Test
+    void shouldNormalizeIcuCorrectly() {
+
+        WardParser parser = new WardParser();
+
+        String result = parser.sameDepartmentCasing("icu");
+
+        assertEquals("ICU", result);
+    }
+
+
 }

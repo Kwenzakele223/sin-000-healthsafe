@@ -22,6 +22,11 @@ class WardParser {
             return "Paediatrics";
         }
 
+        if (casing.equals("Icu")) {
+            return "ICU";
+        }
+
+
         return casing;
     }
 
