@@ -181,4 +181,22 @@ class WardParserTest{
         assertEquals(null, result);
     }
 
+    @Test
+    void shouldCreateWardWithCorrectValues()
+    {
+        Ward ward = new Ward(
+                "W-05",
+                "East Wing",
+                "Paediatrics",
+                5,
+                null
+        );
+
+        assertEquals("W-05", ward.getWardId());
+        assertEquals("East Wing", ward.getWing());
+        assertEquals("Paediatrics", ward.getDepartment());
+        assertEquals(5, ward.getBedsAvailable());
+        assertEquals(null, ward.getNotes());
+    }
+
 }
