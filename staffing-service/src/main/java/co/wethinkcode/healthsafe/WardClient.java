@@ -1,29 +1,23 @@
 package co.wethinkcode.healthsafe;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.List;
 
 class WardClient {
 
     private final HttpClient httpClient;
-    private final ObjectMapper objectMapper;
 
     public WardClient() {
         this.httpClient = HttpClient.newHttpClient();
-        this.objectMapper = new ObjectMapper();
     }
 
-    public List<Ward> getWards() {
+    public boolean wardExists(String wardId) {
 
         try {
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("http://localhost:7030/wards"))
+                    .uri(URI.create("http://localhost:7031/wards/" + wardId))
                     .GET()
                     .build();
 
@@ -32,13 +26,10 @@ class WardClient {
                     HttpResponse.BodyHandlers.ofString()
             );
 
-            return objectMapper.readValue(
-                    response.body(),
-                    new TypeReference<List<Ward>>() {}
-            );
+            return response.statusCode() == 200;
 
         } catch (Exception e) {
-            throw new RuntimeException("Could not retrieve wards", e);
+            throw new RuntimeException("Could not contact Ward Service", e);
         }
     }
 }

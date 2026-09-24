@@ -1,29 +1,28 @@
 package co.wethinkcode.healthsafe;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.List;
 
-class WardClient {
+class AlertLevelClient {
 
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
 
-    public WardClient() {
+    public AlertLevelClient() {
         this.httpClient = HttpClient.newHttpClient();
         this.objectMapper = new ObjectMapper();
     }
 
-    public List<Ward> getWards() {
+    public int getAlertLevel() {
 
         try {
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("http://localhost:7030/wards"))
+                    .uri(URI.create("http://localhost:7032/alert-level"))
                     .GET()
                     .build();
 
@@ -32,13 +31,23 @@ class WardClient {
                     HttpResponse.BodyHandlers.ofString()
             );
 
-            return objectMapper.readValue(
-                    response.body(),
-                    new TypeReference<List<Ward>>() {}
-            );
+            if (response.statusCode() != 200) {
+                throw new RuntimeException(
+                        "Alert Level Service returned status "
+                                + response.statusCode()
+                );
+            }
+
+            JsonNode json = objectMapper.readTree(response.body());
+
+            return json.get("level").asInt();
 
         } catch (Exception e) {
-            throw new RuntimeException("Could not retrieve wards", e);
+            throw new RuntimeException(
+                    "Could not contact Alert Level Service",
+                    e
+            );
         }
     }
 }
+
