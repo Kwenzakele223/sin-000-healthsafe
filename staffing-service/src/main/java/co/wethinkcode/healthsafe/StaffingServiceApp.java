@@ -1,5 +1,6 @@
 package co.wethinkcode.healthsafe;
 
+import co.wethinkcode.healthsafe.mq.StaffingEventPublisher;
 import io.javalin.Javalin;
 
 public class StaffingServiceApp {
@@ -7,7 +8,11 @@ public class StaffingServiceApp {
     public static Javalin createApp() {
 
         WardClient wardClient = new WardClient();
-        AlertLevelClient alertLevelClient = new AlertLevelClient();
+        AlertLevelClient alertLevelClient =
+                new AlertLevelClient();
+
+        StaffingEventPublisher eventPublisher =
+                new StaffingEventPublisher();
 
         Javalin app = Javalin.create();
 
@@ -25,25 +30,45 @@ public class StaffingServiceApp {
                 return;
             }
 
-            int alertLevel = alertLevelClient.getAlertLevel();
+            int alertLevel =
+                    alertLevelClient.getAlertLevel();
 
             String schedule;
 
             if (alertLevel >= 8) {
-                schedule = "Full emergency staffing for ward " + wardId;
+
+                schedule =
+                        "Full emergency staffing for ward "
+                                + wardId;
+
             } else if (alertLevel >= 5) {
-                schedule = "Increased staffing for ward " + wardId;
+
+                schedule =
+                        "Increased staffing for ward "
+                                + wardId;
+
             } else {
-                schedule = "Normal staffing for ward " + wardId;
+
+                schedule =
+                        "Normal staffing for ward "
+                                + wardId;
             }
 
-            ctx.json(
+            ScheduleResponse response =
                     new ScheduleResponse(
                             wardId,
                             alertLevel,
                             schedule
-                    )
+                    );
+
+            eventPublisher.publish(
+                    "Staffing update: "
+                            + wardId
+                            + " - "
+                            + schedule
             );
+
+            ctx.json(response);
         });
 
         return app;
@@ -55,4 +80,3 @@ public class StaffingServiceApp {
 }
 
 // MQ TODO: publishes to ActiveMQ topic MqConfig.TOPIC at MqConfig.BROKER_URL (see co.wethinkcode.healthsafe.mq.MqConfig)
-

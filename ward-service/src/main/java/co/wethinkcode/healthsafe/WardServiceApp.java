@@ -1,5 +1,6 @@
 package co.wethinkcode.healthsafe;
 
+import co.wethinkcode.healthsafe.mq.StaffingEventSubscriber;
 import io.javalin.Javalin;
 
 import java.util.List;
@@ -10,6 +11,11 @@ public class WardServiceApp {
     public static Javalin createApp() {
 
         WardClient wardClient = new WardClient();
+
+        StaffingEventSubscriber subscriber =
+                new StaffingEventSubscriber();
+
+        subscriber.start();
 
         Javalin app = Javalin.create();
 
@@ -28,7 +34,9 @@ public class WardServiceApp {
 
             Ward ward = wardClient.getWards()
                     .stream()
-                    .filter(w -> w.getWardId().equalsIgnoreCase(wardId))
+                    .filter(w ->
+                            w.getWardId()
+                                    .equalsIgnoreCase(wardId))
                     .findFirst()
                     .orElse(null);
 
@@ -42,12 +50,13 @@ public class WardServiceApp {
 
         app.get("/departments", ctx -> {
 
-            List<String> departments = wardClient.getWards()
-                    .stream()
-                    .map(Ward::getDepartment)
-                    .distinct()
-                    .sorted()
-                    .collect(Collectors.toList());
+            List<String> departments =
+                    wardClient.getWards()
+                            .stream()
+                            .map(Ward::getDepartment)
+                            .distinct()
+                            .sorted()
+                            .collect(Collectors.toList());
 
             ctx.json(departments);
         });
@@ -62,4 +71,3 @@ public class WardServiceApp {
         createApp().start(7031);
     }
 }
-
