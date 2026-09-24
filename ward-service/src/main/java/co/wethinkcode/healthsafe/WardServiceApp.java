@@ -1,5 +1,6 @@
 package co.wethinkcode.healthsafe;
 
+import co.wethinkcode.healthsafe.mq.EquipmentFailurePublisher;
 import co.wethinkcode.healthsafe.mq.StaffingEventSubscriber;
 import io.javalin.Javalin;
 
@@ -16,6 +17,9 @@ public class WardServiceApp {
                 new StaffingEventSubscriber();
 
         subscriber.start();
+
+        EquipmentFailurePublisher equipmentFailurePublisher =
+                new EquipmentFailurePublisher();
 
         Javalin app = Javalin.create();
 
@@ -59,6 +63,35 @@ public class WardServiceApp {
                             .collect(Collectors.toList());
 
             ctx.json(departments);
+        });
+
+        app.post("/wards/{id}/equipment-failure", ctx -> {
+
+            String wardId = ctx.pathParam("id");
+
+            Ward ward = wardClient.getWards()
+                    .stream()
+                    .filter(w ->
+                            w.getWardId()
+                                    .equalsIgnoreCase(wardId))
+                    .findFirst()
+                    .orElse(null);
+
+            if (ward == null) {
+                ctx.status(404);
+                return;
+            }
+
+            String message =
+                    "Equipment failure detected in ward "
+                            + ward.getWardId()
+                            + " - "
+                            + ward.getDepartment();
+
+            equipmentFailurePublisher.publish(message);
+
+            ctx.status(202);
+            ctx.result("Equipment failure alert published");
         });
 
         // MQ TODO: subscribes to ActiveMQ topic MqConfig.TOPIC at MqConfig.BROKER_URL (see co.wethinkcode.healthsafe.mq.MqConfig)
