@@ -151,3 +151,7 @@ The main HealthSafe features are implemented:
 * Equipment failure alerts using ActiveMQ
 * Automated tests
 * Docker setup for ActiveMQ
+
+DEMO VIDEO
+https://drive.google.com/file/d/1S9a6ffzZsdqY3AOfiboUaJvomU9MaWSB/view?usp=sharing
+
